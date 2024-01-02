@@ -1,27 +1,3 @@
-
-
-
-1. Artifacotry repository - create
-
-Service account create
-
-service account - json key
-
-copy sa and artifacotyr show panel add principal -- artifactory registry amdin(role)
-
-_______________
-
-
-secrets and variables
-
-secret 1 -- GOOGLE_PROJECT -- project id
-secret 2 -- GOOGLE_APPLICATION_CREDENTIALS -- jsaon sa key
-
-change docker build project
-______________________________
-
-
-
 # This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
 
