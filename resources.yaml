@@ -29,4 +29,4 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: us-central1-docker.pkg.dev/original-nation-408710/docker/nginx:v1
+        image: us-central1-docker.pkg.dev/original-nation-408710/docker/nginx:latest
