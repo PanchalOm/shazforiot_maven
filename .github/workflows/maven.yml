@@ -1,6 +1,36 @@
 
 
-name: Java Maven Build & Publish Artifact
+
+1. Artifacotry repository - create
+
+Service account create
+
+service account - json key
+
+copy sa and artifacotyr show panel add principal -- artifactory registry amdin(role)
+
+_______________
+
+
+secrets and variables
+
+secret 1 -- GOOGLE_PROJECT -- project id
+secret 2 -- GOOGLE_APPLICATION_CREDENTIALS -- jsaon sa key
+
+change docker build project
+______________________________
+
+
+
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Build and deploy
 
 on:
   push:
@@ -9,7 +39,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build_test:
+  build:
 
     runs-on: ubuntu-latest
 
@@ -24,19 +54,32 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
-   
   publish-job:
     runs-on: ubuntu-latest
-    needs: build_test
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-java@v3
+
+    - name: code checkout
+      uses: actions/checkout@v2
+
+    - name: install the gcloud cli
+      uses: google-github-actions/setup-gcloud@v0
       with:
-        java-version: '17'
-        distribution: 'temurin'
-    - run: mvn --batch-mode --update-snapshots verify
-    - run: mkdir staging && cp target/*.jar staging
-    - uses: actions/upload-artifact@v3
-      with:
-        name: Package
-        path: staging
+        project_id: ${{ secrets.GOOGLE_PROJECT }}
+        service_account_key: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS }}
+        install_components: 'gke-gcloud-auth-plugin'
+        export_default_credentials: true
+
+    - name: build and push the docker image
+      env:
+        GOOGLE_PROJECT: ${{ secrets.GOOGLE_PROJECT }}
+      run: |
+        gcloud auth configure-docker us-central1-docker.pkg.dev
+        docker build -t us-central1-docker.pkg.dev/original-nation-408710/docker/nginx:v1 .
+        docker push us-central1-docker.pkg.dev/original-nation-408710/docker/nginx:v1
+    - name: deploy to gke
+      env:
+        GOOGLE_PROJECT: ${{ secrets.GOOGLE_PROJECT }}
+      run: |
+        gcloud container clusters get-credentials cluster-1 --region us-central1-c
+        sed -i "s/GOOGLE_PROJECT/$GOOGLE_PROJECT/g" resources.yaml
+        kubectl apply -f resources.yaml
